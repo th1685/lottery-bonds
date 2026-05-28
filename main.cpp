@@ -92,7 +92,7 @@ std::string getTime() {
     #else
         localtime_r(&now, &localTime);
     #endif
-    oss << std::put_time(&localTime, u8"%Y-%m-%d %H:%M:%S");
+    oss << std::put_time(&localTime, u8"%Y-%m-%d T%H%M%S");
 
     std::string dateTime = oss.str();
     
@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
         std::stod(argv[5]) < 0.0
         ) {
         std::cout << "enter positive quantities" << std::endl;
-
 
         return 1;
     }
