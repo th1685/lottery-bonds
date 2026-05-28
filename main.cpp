@@ -13,8 +13,6 @@
   #include <windows.h>
 #endif
 
-
-
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     double sum = std::inner_product(
         prizes[0].begin(), prizes[0].end(),
