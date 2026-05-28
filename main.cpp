@@ -221,8 +221,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << std::endl << "total draws: " << static_cast<int>(accumulate(prizes[0].begin(), prizes[0].end(), 0.0) * maturity * convertible) << std::endl;
     std::cout << "accounts quantity: " << accounts.size() << std::endl;
-    std::cout << std::endl << "initial book volume: £" << /*toPennies*/initial_vol << std::endl;
-    /*std::cout << std::endl << "starting "; printAccounts(accounts, 10); std::cout << std::endl;*/
+    std::cout << std::endl << "initial book volume: £" << initial_vol << std::endl;
 
 
     /*+MAIN--------------------------------------------+*/
@@ -250,7 +249,6 @@ int main(int argc, char* argv[]) {
 
         balancesToFile(seriesBalances, accounts);
         X += prize_fund; //checkPrizes guarantees the prize fund is emptied
-        //prize_fund = 0.0;
     }
     
     seriesBalances.close();
@@ -265,17 +263,17 @@ int main(int argc, char* argv[]) {
     double book_increase = (X / initial_vol - 1.00) * 100.00;
 
 
-    std::cout << u8"final book volume: £" << /*toPennies*/X<< std::endl;
-    std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << /*toPennies*/simple_accrual << std::endl;
+    std::cout << u8"final book volume: £" << X << std::endl;
+    std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << simple_accrual << std::endl;
     
     std::cout << std::endl << "final ";
     printAccounts(accounts, 10);
 
 
     std::cout << std::endl;
-    std::cout << "median increase: " << /*toPennies*/median(increases) << "\%" << std::endl;
-    std::cout << "average increase: " << /*toPennies*/mean(increases) << "\% (book: " << /*toPennies*/book_increase << "\%)" << std::endl;
-    std::cout << "standard deviation: " << /*toPennies*/standardDeviation(increases) << "\%" << std::endl;
+    std::cout << "median increase: " << median(increases) << "\%" << std::endl;
+    std::cout << "average increase: " << mean(increases) << "\% (book: " << book_increase << "\%)" << std::endl;
+    std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
     
     std::cout << std::endl << "written to " << filename << std::endl;
 
