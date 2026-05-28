@@ -8,7 +8,11 @@
 #include <algorithm>
 #include <ctime>
 #include <sstream>
-#include <windows.h>
+
+#ifdef _WIN32
+  #include <windows.h>
+#endif
+
 
 
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
@@ -83,7 +87,11 @@ std::string getTime() {
     std::ostringstream oss;
     std::time_t now = std::time(nullptr);
     std::tm localTime{};
-    localtime_s(&localTime, &now);
+    #ifdef _WIN32
+        localtime_s(&localTime, &now);
+    #else
+        localtime_r(&now, &localTime);
+    #endif
     oss << std::put_time(&localTime, u8"%Y-%m-%d %H:%M:%S");
 
     std::string dateTime = oss.str();
@@ -124,7 +132,10 @@ void takeInputs(double& maturity, int& convertible, double& effective_rate, int&
 
 
 int main(int argc, char* argv[]) {
-    SetConsoleOutputCP(CP_UTF8);
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+    #endif
+
     /*+CDML--------------------------------------------+*/
     if (argc != 6) {std::cout << "wrong number of arguments: "
                               << std::endl << "  -maturity -effective rate -convertible -max deposit -max accounts" << std::endl;
