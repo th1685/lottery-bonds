@@ -4,14 +4,32 @@
 #include <numeric>
 #include <ostream>
 #include <random>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <ctime>
 #include <sstream>
+#include <matplot/matplot.h>
 
 #ifdef _WIN32
   #include <windows.h>
 #endif
+
+int plotDemoGraph(std::string& timestamp) {
+    using namespace matplot;
+
+    /*suppress gnuplot messages*/
+    auto f = figure(false);
+    f->backend()->run_command("unset warnings");
+    f->ioff();
+
+    /*demo graph*/
+    auto [x, y, z] = peaks();
+    surf(x, y, z);
+
+    save("data-output/graph" + timestamp + ".jpg");
+    return 0;
+}
 
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     double sum = std::inner_product(
@@ -20,7 +38,6 @@ bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     );
     return std::fabs(sum - 1.0) < 1e-9;
 }
-
 
 double nominalFromEffective(double effective, int convertible) {
     return (pow((1 + effective), 1.0/static_cast<double>(convertible)) - 1);
@@ -111,18 +128,14 @@ void takeInputs(double& maturity, int& convertible, double& effective_rate, int&
     std::cout << "maturity (years) : ";
     std::cin >> maturity;
 
-
     std::cout << "effective annual rate (%): ";
     std::cin >> effective_rate; effective_rate /= 100.00;
-
 
     std::cout << "compounding frequency (times per year): ";
     std::cin >> convertible;
 
-
     std::cout << "max deposit: ";
     std::cin >> max_deposit;
-
 
     std::cout << "max accounts: ";
     std::cin >> max_account_quantity;
@@ -136,7 +149,7 @@ int main(int argc, char* argv[]) {
 
     /*+CDML--------------------------------------------+*/
     if (argc != 6) {std::cout << "wrong number of arguments: "
-                              << std::endl << "  -maturity -effective rate -convertible -max deposit -max accounts" << std::endl;
+                              << std::endl << "  -maturity -convertible -effective rate -max deposit -max accounts" << std::endl;
                     return 1;}
     else if (
         std::stod(argv[1]) < 0.0 ||
@@ -153,7 +166,8 @@ int main(int argc, char* argv[]) {
 
     /*+INIT--------------------------------------------+*/
     std::cout << std::fixed << std::setprecision(2);
-    std::string filename = "balances" + getTime() + ".csv";
+    std::string timestamp = getTime();
+    std::string filename = "data-output/balances" + timestamp + ".csv";
     std::ofstream seriesBalances(filename);
     seriesBalances << "period,balances" << std::endl;
     
@@ -165,11 +179,9 @@ int main(int argc, char* argv[]) {
     int max_deposit = std::stoi(argv[4]);
     int max_account_quantity = std::stoi(argv[5]);
 
-
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> A(1, max_account_quantity);
-
 
     std::vector<double> accounts(A(rng), 0.0);
     randomiseAccounts(accounts, max_deposit, rng);
@@ -189,15 +201,12 @@ int main(int argc, char* argv[]) {
         10, 10, 10, 10
     };*/
 
-
     std::vector<double> initial_balances = accounts;
     std::vector<double> increases(accounts.size(), 0.0);
-
 
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
     double initial_vol = accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
     double simple_accrual = X * pow((1.0 + effective_rate), maturity);
-
 
     std::vector<std::vector<double>> prizes = {
         {1.0, 2.0, 4.0, 5.0}, //quantity 
@@ -217,7 +226,6 @@ int main(int argc, char* argv[]) {
               << std::endl;
     
     std::cout << "nominal rate: ~" << 100.0 * nominal_rate << "\%" << std::endl;
-
 
     std::cout << std::endl << "total draws: " << static_cast<int>(accumulate(prizes[0].begin(), prizes[0].end(), 0.0) * maturity * convertible) << std::endl;
     std::cout << "accounts quantity: " << accounts.size() << std::endl;
@@ -246,7 +254,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-
         balancesToFile(seriesBalances, accounts);
         X += prize_fund; //checkPrizes guarantees the prize fund is emptied
     }
@@ -259,9 +266,7 @@ int main(int argc, char* argv[]) {
         increases[i] = (accounts[i] / initial_balances[i] - 1.00) * 100.00;
     }
 
-
     double book_increase = (X / initial_vol - 1.00) * 100.00;
-
 
     std::cout << u8"final book volume: £" << X << std::endl;
     std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << simple_accrual << std::endl;
@@ -277,6 +282,8 @@ int main(int argc, char* argv[]) {
     
     std::cout << std::endl << "written to " << filename << std::endl;
 
+    std::cout << "graph" + timestamp + ".jpg" << std::endl;
+    plotDemoGraph(timestamp);
 
     return 0;
 }
