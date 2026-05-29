@@ -1,6 +1,7 @@
 # lottery-bonds
 A simple stochastic simulation of a lottery bond.
 
+Inputs:
 - `duration` (years),
 - `effective annual interest rate`,
 - `compounding frequency`,
