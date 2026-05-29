@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <ctime>
 #include <sstream>
+#include <matplot/matplot.h>
 
 #ifdef _WIN32
   #include <windows.h>
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
 
     /*+CDML--------------------------------------------+*/
     if (argc != 6) {std::cout << "wrong number of arguments: "
-                              << std::endl << "  -maturity -effective rate -convertible -max deposit -max accounts" << std::endl;
+                              << std::endl << "  -maturity -convertible -effective rate -max deposit -max accounts" << std::endl;
                     return 1;}
     else if (
         std::stod(argv[1]) < 0.0 ||
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     /*+INIT--------------------------------------------+*/
     std::cout << std::fixed << std::setprecision(2);
-    std::string filename = "balances" + getTime() + ".csv";
+    std::string filename = "data-output/balances" + getTime() + ".csv";
     std::ofstream seriesBalances(filename);
     seriesBalances << "period,balances" << std::endl;
     
