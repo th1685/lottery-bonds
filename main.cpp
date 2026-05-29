@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
     
     std::cout << std::endl << "written to " << filename << std::endl;
 
-    std::cout << "graph" << std::endl;
+    std::cout << "graph" + timestamp + ".jpg" << std::endl;
     plotDemoGraph(timestamp);
 
     return 0;
