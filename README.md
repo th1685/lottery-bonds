@@ -9,3 +9,6 @@ A simple stochastic simulation of a lottery bond.
 
 Randomly performs the lottery (at the end of) each compounding period, tracking all balances.
 Outputs a CSV containing time series data for all accounts.
+
+`$ cmake --build build`
+`$ ./build/lottery -maturity -effective rate -convertible -max deposit -max accounts`
