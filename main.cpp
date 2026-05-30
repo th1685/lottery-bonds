@@ -31,8 +31,10 @@ int plotDemoGraph(std::string& timestamp) {
     return 0;
 }
 
-int graphFromCSV(const std::string& csv_name) {
+int graphFromCSV(const std::string& csv_name, const std::string& timestamp) {
     std::ifstream csv(csv_name);
+
+    std::cout << "graph" + timestamp + ".jpg" << std::endl;
 
     csv.close();
     return 0;
@@ -289,8 +291,7 @@ int main(int argc, char* argv[]) {
     
     std::cout << std::endl << "written to " << filename << std::endl;
 
-    std::cout << "graph" + timestamp + ".jpg" << std::endl;
-    plotDemoGraph(timestamp);
+    graphFromCSV(filename, timestamp);
 
     return 0;
 }
