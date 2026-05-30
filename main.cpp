@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -15,30 +16,52 @@
   #include <windows.h>
 #endif
 
-int plotDemoGraph(std::string& timestamp) {
-    using namespace matplot;
-
+int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries) {
     /*suppress gnuplot messages*/
-    auto f = figure(false);
+    auto f = matplot::figure(false);
     f->backend()->run_command("unset warnings");
     f->ioff();
 
-    /*demo graph*/
-    auto [x, y, z] = peaks();
-    surf(x, y, z);
+    /*transpose  timeseries*/
+    size_t rows = accounts_timeseries.size();
+    size_t cols = accounts_timeseries[0].size();
 
-    save("data-output/graph" + timestamp + ".jpg");
+    std::vector<std::vector<double>> transposed(cols, std::vector<double>(rows));
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            transposed[j][i] = accounts_timeseries[i][j];
+        }
+    }
+
+    matplot::title("Balances per time");
+    matplot::xlabel("Compounding period"); matplot::ylabel("Amount (£)");
+
+    matplot::plot(transposed);
+
+    matplot::save(graphname);
+    std::cout << "chart saved to ./" + graphname << std::endl;
+    
     return 0;
 }
 
-int graphFromCSV(const std::string& csv_name, const std::string& timestamp) {
-    std::ifstream csv(csv_name);
 
-    std::cout << "graph" + timestamp + ".jpg" << std::endl;
+int balancesToFile(std::string& filename, const std::vector<std::vector<double>>& accounts_timeseries) {
+    std::ofstream seriesBalances(filename);
 
-    csv.close();
+    for (const std::vector<double>& x : accounts_timeseries) {
+        for (const double& y : x) {
+            seriesBalances << y << ", ";
+        }
+        seriesBalances << "\n"; //performance
+    }
+
+    seriesBalances.close();
+    std::cout << "\nbalances data written to ./" << filename << std::endl;
+
     return 0;
 }
+
 
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     double sum = std::inner_product(
@@ -96,14 +119,7 @@ void printAccounts (const std::vector<double>& accounts, int rows) {
         std::cout << std::setw(8) << val << ", ";
         if (++col % static_cast<size_t>(rows) == 0) {std::cout << "\n";}
     }
-}
-
-
-void balancesToFile(std::ofstream& File, const std::vector<double>& accounts) {
-    for (const double& x : accounts) {
-        File << x << ", ";
-    }
-    File << "\n"; //performance
+    std::cout << "\n";
 }
 
 
@@ -176,9 +192,9 @@ int main(int argc, char* argv[]) {
     /*+INIT--------------------------------------------+*/
     std::cout << std::fixed << std::setprecision(2);
     std::string timestamp = getTime();
-    std::string filename = "data-output/balances" + timestamp + ".csv";
-    std::ofstream seriesBalances(filename);
-    seriesBalances << "period,balances" << std::endl;
+    std::string output_folder = "data-output"; output_folder += "/";
+    std::string filename = output_folder + "balances" + timestamp + ".csv";
+    std::string graphname = output_folder + "graph" + timestamp + ".jpg";
     
     double prize_fund = 0.0; //prize fund
     double maturity = std::stod(argv[1]); //years
@@ -190,12 +206,10 @@ int main(int argc, char* argv[]) {
 
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<int> A(1, max_account_quantity);
+    /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
 
-    std::vector<double> accounts(A(rng), 0.0);
-    randomiseAccounts(accounts, max_deposit, rng);
-    
-    /*std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
+    /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
+    std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1, //60 x £1 accounts
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
@@ -208,13 +222,15 @@ int main(int argc, char* argv[]) {
          5,  5,  5,  5,  5,  5,  5,  5,  5,  5, //10 x £5 accounts
         10, 10, 10, 10, 10, 10, 10, 10, 10, 10, // 2 x £10 accounts
         10, 10, 10, 10
-    };*/
+    };
+    std::vector<std::vector<double>> accounts_timeseries; //empty series
+    /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
+    accounts_timeseries.push_back(accounts); //push initial
 
-    std::vector<double> initial_balances = accounts;
     std::vector<double> increases(accounts.size(), 0.0);
 
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
-    double initial_vol = accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
+    double initial_vol = X; //accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
     double simple_accrual = X * pow((1.0 + effective_rate), maturity);
 
     std::vector<std::vector<double>> prizes = {
@@ -236,14 +252,14 @@ int main(int argc, char* argv[]) {
     
     std::cout << "nominal rate: ~" << 100.0 * nominal_rate << "\%" << std::endl;
 
-    std::cout << std::endl << "total draws: " << static_cast<int>(accumulate(prizes[0].begin(), prizes[0].end(), 0.0) * maturity * convertible) << std::endl;
+    std::cout << std::endl << "total prize draws: " << static_cast<int>(accumulate(prizes[0].begin(), prizes[0].end(), 0.0) * maturity * convertible) << std::endl;
     std::cout << "accounts quantity: " << accounts.size() << std::endl;
     std::cout << std::endl << "initial book volume: £" << initial_vol << std::endl;
 
 
     /*+MAIN--------------------------------------------+*/
     for (int period = 1; period <= convertible * maturity; period++) {
-        seriesBalances << period << ", ";
+        //seriesBalances << period << ", ";
         prize_fund = X * nominal_rate;
 
         std::uniform_real_distribution<double> U(0, X);
@@ -263,16 +279,13 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        balancesToFile(seriesBalances, accounts);
         X += prize_fund; //checkPrizes guarantees the prize fund is emptied
+        accounts_timeseries.push_back(accounts); //add current to series
     }
-    
-    seriesBalances.close();
-
 
     /*+STATS-------------------------------------------+*/
     for (int i = 0; i < accounts.size(); i++) {
-        increases[i] = (accounts[i] / initial_balances[i] - 1.00) * 100.00;
+        increases[i] = (accounts[i] / accounts_timeseries[0][i] - 1.00) * 100.00;
     }
 
     double book_increase = (X / initial_vol - 1.00) * 100.00;
@@ -283,15 +296,12 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl << "final ";
     printAccounts(accounts, 10);
 
-
-    std::cout << std::endl;
     std::cout << "median increase: " << median(increases) << "\%" << std::endl;
     std::cout << "average increase: " << mean(increases) << "\% (book: " << book_increase << "\%)" << std::endl;
     std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
-    
-    std::cout << std::endl << "written to " << filename << std::endl;
 
-    graphFromCSV(filename, timestamp);
+    if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
+    if (generateGraph(graphname, accounts_timeseries)) { std::cout << "\nfailed to plot graph" <<std::endl; }
 
     return 0;
 }
