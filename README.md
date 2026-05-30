@@ -9,7 +9,7 @@ Inputs:
 - `maximum number of accounts`.
 
 Randomly performs the lottery (at the end of) each compounding period, tracking all balances.\
-Outputs a CSV containing time series data for all accounts.
+Outputs a CSV containing time series data for all accounts, and generates a graph.
 
 `$ cmake --build build`\
 `$ ./build/lottery -maturity -effective rate -convertible -max deposit -max accounts`
