@@ -66,9 +66,9 @@ compile_commands.json
 # vcpkg
 vcpkg_installed/
 
-# outputs
-*.csv
+# data
 data-output/
+config/
 
 # debug information files
 *.dwo

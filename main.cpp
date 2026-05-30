@@ -207,22 +207,15 @@ int main(int argc, char* argv[]) {
     std::random_device dev;
     std::mt19937 rng(dev());
     /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
-
     /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
-    std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1, //60 x £1 accounts
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         2,  2,  2,  2,  2,  2,  2,  2,  2,  2, //25 x £2 accounts
-         2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-         2,  2,  2,  2,  2,
-         5,  5,  5,  5,  5,  5,  5,  5,  5,  5, //10 x £5 accounts
-        10, 10, 10, 10, 10, 10, 10, 10, 10, 10, // 2 x £10 accounts
-        10, 10, 10, 10
-    };
+
+    std::ifstream accountsData("config/accounts.txt");
+    std::vector<double> accounts;
+    int file_read_value, file_read_count;
+    while (accountsData >> file_read_value >> file_read_count) {
+        accounts.insert(accounts.end(), file_read_count, file_read_value);
+    }
+    
     std::vector<std::vector<double>> accounts_timeseries; //empty series
     /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
