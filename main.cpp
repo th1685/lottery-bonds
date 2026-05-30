@@ -209,13 +209,17 @@ int main(int argc, char* argv[]) {
     /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
     /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
 
+    /*load accounts file data*/
     std::ifstream accountsData("config/accounts.txt");
     std::vector<double> accounts;
-    int file_read_value, file_read_count;
-    while (accountsData >> file_read_value >> file_read_count) {
-        accounts.insert(accounts.end(), file_read_count, file_read_value);
+    double file_read_account_value;
+    int file_read_account_volume;
+    while (accountsData >> file_read_account_value >> file_read_account_volume) {
+        accounts.insert(accounts.end(), file_read_account_volume, file_read_account_value);
     }
-    
+    accountsData.close();
+
+    /*init & checks*/
     std::vector<std::vector<double>> accounts_timeseries; //empty series
     /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
@@ -226,10 +230,20 @@ int main(int argc, char* argv[]) {
     double initial_vol = X; //accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
     double simple_accrual = X * pow((1.0 + effective_rate), maturity);
 
-    std::vector<std::vector<double>> prizes = {
+    /*load prizes file data*/
+    std::ifstream prizeData("config/p-structure.txt");
+    std::vector<std::vector<double>> prizes(2);
+    double file_read_prizes_value, file_read_prizes_volume;
+    while (prizeData >> file_read_prizes_volume >> file_read_prizes_value) {
+        prizes[0].push_back(file_read_prizes_volume);
+        prizes[1].push_back(file_read_prizes_value);
+    }
+    prizeData.close();
+
+    /*std::vector<std::vector<double>> prizes = {
         {1.0, 2.0, 4.0, 5.0}, //quantity 
         {0.25, 0.125, 0.1, 0.02} //fraction of prize fund
-    };
+    };*/
 
     if (!checkPrizes(prizes)) { //check prize payout
         std::cout << "prizes are initialised incorrectly." << std::endl;
