@@ -34,6 +34,9 @@ int generateGraph(const std::string& graphname, const std::vector<std::vector<do
         }
     }
 
+    matplot::title("Balances per time");
+    matplot::xlabel("Compounding period"); matplot::ylabel("Amount (£)");
+
     matplot::plot(transposed);
 
     matplot::save(graphname);
