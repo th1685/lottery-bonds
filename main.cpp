@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -15,44 +16,49 @@
   #include <windows.h>
 #endif
 
-/*int plotDemoGraph(std::string& timestamp) {
-    using namespace matplot;
-
-    //suppress gnuplot messages
-    auto f = figure(false);
-    f->backend()->run_command("unset warnings");
-    f->ioff();
-
-    //demo graph
-    auto [x, y, z] = peaks();
-    surf(x, y, z);
-
-    save("data-output/graph" + timestamp + ".jpg");
-    return 0;
-}*/
-
 int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries) {
-    //std::cout << csv.rdbuf() << std::endl;
-
-    /*std::copy(
-    std::istream_iterator<int>(csv), 
-    std::istream_iterator<int>(), 
-    std::back_inserter(filedata));*/
-
     /*suppress gnuplot messages*/
     auto f = matplot::figure(false);
     f->backend()->run_command("unset warnings");
     f->ioff();
 
-    std::vector<std::vector<double>> Y = {
-        {16, 5, 9, 4}, {2, 11, 7, 14}, {3, 10, 6, 15}, {13, 8, 12, 1}};
-    matplot::plot(Y);
+    /*transpose  timeseries*/
+    size_t rows = accounts_timeseries.size();
+    size_t cols = accounts_timeseries[0].size();
+
+    std::vector<std::vector<double>> transposed(cols, std::vector<double>(rows));
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            transposed[j][i] = accounts_timeseries[i][j];
+        }
+    }
+
+    matplot::plot(transposed);
 
     matplot::save(graphname);
     std::cout << "chart saved to ./" + graphname << std::endl;
     
     return 0;
 }
+
+
+int balancesToFile(std::string& filename, const std::vector<std::vector<double>>& accounts_timeseries) {
+    std::ofstream seriesBalances(filename);
+
+    for (const std::vector<double>& x : accounts_timeseries) {
+        for (const double& y : x) {
+            seriesBalances << y << ", ";
+        }
+        seriesBalances << "\n"; //performance
+    }
+
+    seriesBalances.close();
+    std::cout << "\nbalances data written to ./" << filename << std::endl;
+
+    return 0;
+}
+
 
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     double sum = std::inner_product(
@@ -111,24 +117,6 @@ void printAccounts (const std::vector<double>& accounts, int rows) {
         if (++col % static_cast<size_t>(rows) == 0) {std::cout << "\n";}
     }
     std::cout << "\n";
-}
-
-
-int balancesToFile(std::string& filename, const std::vector<std::vector<double>>& accounts_timeseries) {
-    std::ofstream seriesBalances(filename);
-    //seriesBalances << "period,balances" << std::endl;
-
-    for (const std::vector<double>& x : accounts_timeseries) {
-        for (const double& y : x) {
-            seriesBalances << y << ", ";
-        }
-        seriesBalances << "\n"; //performance
-    }
-
-    seriesBalances.close();
-    std::cout << "\nbalances data written to ./" << filename << std::endl;
-
-    return 0;
 }
 
 
@@ -215,14 +203,10 @@ int main(int argc, char* argv[]) {
 
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<int> A(1, max_account_quantity);
+    /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
 
-    std::vector<double> accounts(A(rng), 0.0); //empty random size
-    std::vector<std::vector<double>> accounts_timeseries; //empty series
-    randomiseAccounts(accounts, max_deposit, rng); //random start balances
-    accounts_timeseries.push_back(accounts); //push initial
-    
-    /*std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
+    /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
+    std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1, //60 x £1 accounts
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
@@ -235,9 +219,11 @@ int main(int argc, char* argv[]) {
          5,  5,  5,  5,  5,  5,  5,  5,  5,  5, //10 x £5 accounts
         10, 10, 10, 10, 10, 10, 10, 10, 10, 10, // 2 x £10 accounts
         10, 10, 10, 10
-    };*/
+    };
+    std::vector<std::vector<double>> accounts_timeseries; //empty series
+    /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
+    accounts_timeseries.push_back(accounts); //push initial
 
-    //std::vector<double> initial_balances = accounts;
     std::vector<double> increases(accounts.size(), 0.0);
 
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
@@ -290,7 +276,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        //balancesToFile(seriesBalances, accounts);
         X += prize_fund; //checkPrizes guarantees the prize fund is emptied
         accounts_timeseries.push_back(accounts); //add current to series
     }
