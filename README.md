@@ -9,8 +9,8 @@ Inputs:
 - `maximum number of accounts`.
 
 Randomly performs the lottery (at the end of) each compounding period, tracking all balances.\
-Outputs a CSV containing time series data for all accounts, and generates a graph.\
-
+Outputs a CSV containing time series data for all accounts, and generates a graph.
+\
 ```bash
 lottery-bonds/
 ├── main.cpp
