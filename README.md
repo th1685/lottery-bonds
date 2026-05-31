@@ -43,5 +43,30 @@ For the prizes,
 Build & run with
 ```bash
 $ cmake --build build
-$ ./build/lottery -maturity -effective rate -convertible -max deposit -max accounts
+$ ./build/lottery -maturity -effective rate -convertible -random ? (-max deposit -max accounts :)
 ```
+Example output for `lottery 5 12 0.04 false` :
+```bash
+prizes are initialised correctly.
+annual effective rate: 4.00%
+  convertible 12 times per year for 5 years
+nominal rate: ~0.33%
+
+total prize draws: 60
+accounts quantity: 450
+
+initial book volume: £1000.00
+final book volume: £1216.65
+  matches simple interest: £1216.65
+
+final balances:
+    ...
+
+median increase: 0.00%
+average increase: 18.89% (book: 21.67%)
+standard deviation: 68.84%
+
+balances data written to ./data-output/balances2026-05-31 T201851.csv
+chart saved to ./data-output/graph2026-05-31 T201851.jpg
+```
+<img width="560" height="420" alt="graph2026-05-31 T201851" src="https://github.com/user-attachments/assets/0101f5d0-336a-4d28-943b-5b7158e7f338" />
