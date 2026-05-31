@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl << "final ";
     printAccounts(accounts, 10);
 
-    std::cout << "median increase: " << median(increases) << "\%" << std::endl;
+    std::cout << "median (annual) increase: " << median(increases) << "\% (" << nominalFromEffective(median(increases), maturity) * maturity << "\%)" << std::endl;
     std::cout << "average (annual) increase: " << mean(increases) << "\% (" << nominalFromEffective(mean(increases), maturity) * maturity << "\%)" << std::endl;
     std::cout << "  book: " << book_increase << "\%" << std::endl;
     std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
