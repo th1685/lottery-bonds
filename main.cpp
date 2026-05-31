@@ -166,6 +166,9 @@ void takeInputs(double& maturity, int& convertible, double& effective_rate, int&
     std::cin >> max_account_quantity;
 }
 
+bool is_empty(std::ifstream& pFile) {
+    return pFile.tellg() == 0 && pFile.peek() == std::ifstream::traits_type::eof();
+}
 
 int main(int argc, char* argv[]) {
     #ifdef _WIN32
@@ -207,22 +210,21 @@ int main(int argc, char* argv[]) {
     std::random_device dev;
     std::mt19937 rng(dev());
     /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
-
     /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
-    std::vector<double> accounts = {  //each account buys a certain number of contracts until the volume is fulfilled
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1, //60 x £1 accounts
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-         2,  2,  2,  2,  2,  2,  2,  2,  2,  2, //25 x £2 accounts
-         2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-         2,  2,  2,  2,  2,
-         5,  5,  5,  5,  5,  5,  5,  5,  5,  5, //10 x £5 accounts
-        10, 10, 10, 10, 10, 10, 10, 10, 10, 10, // 2 x £10 accounts
-        10, 10, 10, 10
-    };
+
+    /*load accounts file data*/
+    std::ifstream accountsData("config/accounts.txt");
+    if (!accountsData.is_open()) { std::cout << "could not open accounts.txt" << std::endl; return -1; }
+    if (is_empty(accountsData)) { std::cout << "accounts.txt empty" << std::endl; return -1; }
+    std::vector<double> accounts;
+    double file_read_account_value;
+    int file_read_account_volume;
+    while (accountsData >> file_read_account_value >> file_read_account_volume) {
+        accounts.insert(accounts.end(), file_read_account_volume, file_read_account_value);
+    }
+    accountsData.close();
+
+    /*init & checks*/
     std::vector<std::vector<double>> accounts_timeseries; //empty series
     /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
@@ -233,10 +235,22 @@ int main(int argc, char* argv[]) {
     double initial_vol = X; //accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
     double simple_accrual = X * pow((1.0 + effective_rate), maturity);
 
-    std::vector<std::vector<double>> prizes = {
+    /*load prizes file data*/
+    std::ifstream prizeData("config/p-structure.txt");
+    if (!prizeData.is_open()) { std::cout << "could not open p-structure.txt" << std::endl; return -1; }
+    if (is_empty(prizeData)) { std::cout << "p-structure.txt empty" << std::endl; return -1; }
+    std::vector<std::vector<double>> prizes(2);
+    double file_read_prizes_value, file_read_prizes_volume;
+    while (prizeData >> file_read_prizes_volume >> file_read_prizes_value) {
+        prizes[0].push_back(file_read_prizes_volume);
+        prizes[1].push_back(file_read_prizes_value);
+    }
+    prizeData.close();
+
+    /*std::vector<std::vector<double>> prizes = {
         {1.0, 2.0, 4.0, 5.0}, //quantity 
         {0.25, 0.125, 0.1, 0.02} //fraction of prize fund
-    };
+    };*/
 
     if (!checkPrizes(prizes)) { //check prize payout
         std::cout << "prizes are initialised incorrectly." << std::endl;

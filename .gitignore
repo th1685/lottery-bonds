@@ -66,8 +66,8 @@ compile_commands.json
 # vcpkg
 vcpkg_installed/
 
-# outputs
-*.csv
+# data
+old-config/
 data-output/
 
 # debug information files
