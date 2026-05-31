@@ -4,13 +4,13 @@ A simple stochastic simulation of a lottery bond.
 Inputs:
 - `(double) duration` in years,
 - `(double) effective annual interest rate` percentage as decimal,
-- `(int) compounding frequency` times per yeat,
-- `(bool) random` randomise initial account layout (otherwise read from config)
+- `(int) compounding frequency` times per year,
+- `(bool) random` randomise initial account layout (otherwise read from config),
   - `(double) maximum deposit per account`,
   - `(int) maximum number of accounts`.
 
 Randomly performs the lottery (at the end of) each compounding period, tracking all balances.\
-Outputs a CSV containing time series data for all accounts, and generates a graph.
+Outputs a CSV containing time series data for all accounts and generates a graph.
 ```bash
 lottery-bonds/
 ├── main.cpp
