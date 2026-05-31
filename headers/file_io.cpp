@@ -1,6 +1,6 @@
 #include "file_io.hpp"
 
-int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries) {
+int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries, double mean, double maturity) {
     /*suppress gnuplot messages*/
     auto f = matplot::figure(false);
     f->backend()->run_command("unset warnings");
@@ -18,7 +18,7 @@ int generateGraph(const std::string& graphname, const std::vector<std::vector<do
         }
     }
 
-    matplot::title("Balances per time");
+    matplot::title("Balances (mean annual increase " + std::to_string((pow((1 + mean), 1.0/static_cast<double>(maturity)) - 1) * maturity) + "\%)");
     matplot::xlabel("Compounding period"); matplot::ylabel("Amount (£)");
 
     matplot::plot(transposed);

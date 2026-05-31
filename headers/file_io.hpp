@@ -4,7 +4,7 @@
 #include <vector>
 #include <matplot/matplot.h>
 
-int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries);
+int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries, double mean, double maturity);
 
 int balancesToFile(std::string& filename, const std::vector<std::vector<double>>& accounts_timeseries);
 

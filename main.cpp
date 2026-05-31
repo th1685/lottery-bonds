@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
 
     if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
-    if (generateGraph(graphname, accounts_timeseries)) { std::cout << "\nfailed to plot graph" <<std::endl; }
+    if (generateGraph(graphname, accounts_timeseries, mean(increases), maturity)) { std::cout << "\nfailed to plot graph" <<std::endl; }
 
     return 0;
 }
