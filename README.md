@@ -22,10 +22,10 @@ lottery-bonds/
     ├── graph
     └── CSV data
 ```
-There are two configuration files. The syntax looks like\
-\
-qty amt\
-\
+There are two configuration files. The syntax looks like
+```bash
+qty amt
+```
 for both. For the accounts,
 ```bash
 1 60  means 60 x £1,
