@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <iomanip>
@@ -185,6 +186,7 @@ int main(int argc, char* argv[]) {
     }
 
     double book_increase = (X / initial_vol - 1.00) * 100.00;
+    double mean_annual_increase = (std::pow(1 + mean(increases), 1 / maturity) - 1.00) * maturity;
 
     std::cout << u8"final book volume: £" << X << std::endl;
     std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << simple_accrual << std::endl;
@@ -193,8 +195,11 @@ int main(int argc, char* argv[]) {
     printAccounts(accounts, 10);
 
     std::cout << "median increase: " << median(increases) << "\%" << std::endl;
-    std::cout << "average increase: " << mean(increases) << "\% (book: " << book_increase << "\%)" << std::endl;
+    std::cout << "average (annual) increase: " << mean(increases) << "\% (" << nominalFromEffective(mean(increases), maturity) * maturity << "\%)" << std::endl;
+    std::cout << "  book: " << book_increase << "\%" << std::endl;
     std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
+    std::cout << "maximum amount: " << *std::max_element(accounts.begin(), accounts.end()) << std::endl;
+    std::cout << "minimum amount: " << *std::min_element(accounts.begin(), accounts.end()) << std::endl;
 
     if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
     if (generateGraph(graphname, accounts_timeseries, mean(increases), maturity)) { std::cout << "\nfailed to plot graph" <<std::endl; }
