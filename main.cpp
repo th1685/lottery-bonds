@@ -12,56 +12,12 @@
 #include <sstream>
 #include <matplot/matplot.h>
 
+#include "headers/numerical.hpp"
+#include "headers/file_io.hpp"
+
 #ifdef _WIN32
   #include <windows.h>
 #endif
-
-int generateGraph(const std::string& graphname, const std::vector<std::vector<double>>& accounts_timeseries) {
-    /*suppress gnuplot messages*/
-    auto f = matplot::figure(false);
-    f->backend()->run_command("unset warnings");
-    f->ioff();
-
-    /*transpose  timeseries*/
-    size_t rows = accounts_timeseries.size();
-    size_t cols = accounts_timeseries[0].size();
-
-    std::vector<std::vector<double>> transposed(cols, std::vector<double>(rows));
-
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            transposed[j][i] = accounts_timeseries[i][j];
-        }
-    }
-
-    matplot::title("Balances per time");
-    matplot::xlabel("Compounding period"); matplot::ylabel("Amount (£)");
-
-    matplot::plot(transposed);
-
-    matplot::save(graphname);
-    std::cout << "chart saved to ./" + graphname << std::endl;
-    
-    return 0;
-}
-
-
-int balancesToFile(std::string& filename, const std::vector<std::vector<double>>& accounts_timeseries) {
-    std::ofstream seriesBalances(filename);
-
-    for (const std::vector<double>& x : accounts_timeseries) {
-        for (const double& y : x) {
-            seriesBalances << y << ", ";
-        }
-        seriesBalances << "\n"; //performance
-    }
-
-    seriesBalances.close();
-    std::cout << "\nbalances data written to ./" << filename << std::endl;
-
-    return 0;
-}
-
 
 bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
     double sum = std::inner_product(
@@ -69,46 +25,6 @@ bool checkPrizes(const std::vector<std::vector<double>>& prizes) {
         prizes[1].begin(), 0.0
     );
     return std::fabs(sum - 1.0) < 1e-9;
-}
-
-double nominalFromEffective(double effective, int convertible) {
-    return (pow((1 + effective), 1.0/static_cast<double>(convertible)) - 1);
-}
-
-
-double mean(const std::vector<double> &v) {
-    return std::accumulate(v.begin(), v.end(), 0.0) / static_cast<double>(v.size());
-}
-
-
-double median(std::vector<double> v) {
-    size_t n = v.size() / 2;
-    nth_element(v.begin(), v.begin()+n, v.end());
-    return v[n];
-}
-
-
-double standardDeviation(const std::vector<double>& values) {
-    if (values.empty())
-        throw std::invalid_argument("Vector must not be empty");
-
-    double mean = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
-
-    double variance = 0.0;
-    for (double v : values)
-    {
-        variance += (v - mean) * (v - mean);
-    }
-
-    variance /= values.size(); // Population standard deviation
-    // Use (values.size() - 1) for sample standard deviation
-
-    return std::sqrt(variance);
-}
-
-
-double toPennies(double x) {
-    return std::round(x * 100.00) / 100;
 }
 
 
@@ -166,9 +82,6 @@ void takeInputs(double& maturity, int& convertible, double& effective_rate, int&
     std::cin >> max_account_quantity;
 }
 
-bool is_empty(std::ifstream& pFile) {
-    return pFile.tellg() == 0 && pFile.peek() == std::ifstream::traits_type::eof();
-}
 
 int main(int argc, char* argv[]) {
     #ifdef _WIN32
@@ -212,45 +125,19 @@ int main(int argc, char* argv[]) {
     /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
     /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
 
-    /*load accounts file data*/
-    std::ifstream accountsData("config/accounts.txt");
-    if (!accountsData.is_open()) { std::cout << "could not open accounts.txt" << std::endl; return -1; }
-    if (is_empty(accountsData)) { std::cout << "accounts.txt empty" << std::endl; return -1; }
-    std::vector<double> accounts;
-    double file_read_account_value;
-    int file_read_account_volume;
-    while (accountsData >> file_read_account_value >> file_read_account_volume) {
-        accounts.insert(accounts.end(), file_read_account_volume, file_read_account_value);
-    }
-    accountsData.close();
-
+    /*load file data*/
+    std::vector<double> accounts = load_1d("config/accounts.txt");
+    std::vector<std::vector<double>> prizes = load_2d("config/p-structure.txt");
+    std::vector<double> increases(accounts.size(), 0.0);
+    
     /*init & checks*/
     std::vector<std::vector<double>> accounts_timeseries; //empty series
     /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
 
-    std::vector<double> increases(accounts.size(), 0.0);
-
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
-    double initial_vol = X; //accumulate(initial_balances.begin(), initial_balances.end(), 0.0);
+    double initial_vol = X;
     double simple_accrual = X * pow((1.0 + effective_rate), maturity);
-
-    /*load prizes file data*/
-    std::ifstream prizeData("config/p-structure.txt");
-    if (!prizeData.is_open()) { std::cout << "could not open p-structure.txt" << std::endl; return -1; }
-    if (is_empty(prizeData)) { std::cout << "p-structure.txt empty" << std::endl; return -1; }
-    std::vector<std::vector<double>> prizes(2);
-    double file_read_prizes_value, file_read_prizes_volume;
-    while (prizeData >> file_read_prizes_volume >> file_read_prizes_value) {
-        prizes[0].push_back(file_read_prizes_volume);
-        prizes[1].push_back(file_read_prizes_value);
-    }
-    prizeData.close();
-
-    /*std::vector<std::vector<double>> prizes = {
-        {1.0, 2.0, 4.0, 5.0}, //quantity 
-        {0.25, 0.125, 0.1, 0.02} //fraction of prize fund
-    };*/
 
     if (!checkPrizes(prizes)) { //check prize payout
         std::cout << "prizes are initialised incorrectly." << std::endl;
