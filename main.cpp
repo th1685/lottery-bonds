@@ -1,13 +1,11 @@
 #include <cstddef>
 #include <iostream>
-#include <fstream>
 #include <iomanip>
 #include <numeric>
 #include <ostream>
 #include <random>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <ctime>
 #include <sstream>
 #include <matplot/matplot.h>
