@@ -166,6 +166,9 @@ void takeInputs(double& maturity, int& convertible, double& effective_rate, int&
     std::cin >> max_account_quantity;
 }
 
+bool is_empty(std::ifstream& pFile) {
+    return pFile.tellg() == 0 && pFile.peek() == std::ifstream::traits_type::eof();
+}
 
 int main(int argc, char* argv[]) {
     #ifdef _WIN32
@@ -211,6 +214,8 @@ int main(int argc, char* argv[]) {
 
     /*load accounts file data*/
     std::ifstream accountsData("config/accounts.txt");
+    if (!accountsData.is_open()) { std::cout << "could not open accounts.txt" << std::endl; return -1; }
+    if (is_empty(accountsData)) { std::cout << "accounts.txt empty" << std::endl; return -1; }
     std::vector<double> accounts;
     double file_read_account_value;
     int file_read_account_volume;
@@ -232,6 +237,8 @@ int main(int argc, char* argv[]) {
 
     /*load prizes file data*/
     std::ifstream prizeData("config/p-structure.txt");
+    if (!prizeData.is_open()) { std::cout << "could not open p-structure.txt" << std::endl; return -1; }
+    if (is_empty(prizeData)) { std::cout << "p-structure.txt empty" << std::endl; return -1; }
     std::vector<std::vector<double>> prizes(2);
     double file_read_prizes_value, file_read_prizes_volume;
     while (prizeData >> file_read_prizes_volume >> file_read_prizes_value) {
