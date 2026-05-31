@@ -7,5 +7,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Matplot++ REQUIRED)
 
-add_executable(lottery main.cpp)
+add_executable(lottery
+    main.cpp
+    headers/numerical.hpp
+    headers/numerical.cpp
+    headers/file_io.hpp
+    headers/file_io.cpp
+)
 target_link_libraries(lottery PRIVATE Matplot++::matplot)
