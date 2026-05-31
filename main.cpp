@@ -125,12 +125,9 @@ int main(int argc, char* argv[]) {
     /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
     /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
 
-    /*load file data*/
     std::vector<double> accounts = load_1d("config/accounts.txt");
     std::vector<std::vector<double>> prizes = load_2d("config/p-structure.txt");
     std::vector<double> increases(accounts.size(), 0.0);
-    
-    /*init & checks*/
     std::vector<std::vector<double>> accounts_timeseries; //empty series
     /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
