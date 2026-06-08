@@ -48,9 +48,9 @@ For the prizes,
 Build & run with
 ```bash
 $ cmake --build build
-$ ./build/lottery -maturity -effective rate -convertible -random ? (-max deposit -max accounts :)
+$ ./build/lottery -maturity -effectiverate -convertible -batchsize -random ? (-maxdeposit -maxaccounts : null)
 ```
-Example output for `lottery 10 12 0.043 false` :
+Example output for `lottery 10 12 0.043 1 false` :
 ```bash
 prizes are initialised correctly.
 annual effective rate: 4.30%
