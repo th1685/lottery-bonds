@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <filesystem>
 #include <sstream>
 #include <matplot/matplot.h>
 
@@ -114,10 +115,9 @@ int main(int argc, char* argv[]) {
 
     /*+INIT--------------------------------------------+*/
     std::cout << std::fixed << std::setprecision(2);
-    std::string timestamp = getTime();
-    std::string output_folder = "data-output"; output_folder += "/";
-    std::string filename = output_folder + "balances" + timestamp + ".csv";
-    std::string graphname = output_folder + "graph" + timestamp + ".jpg";
+    std::string timestamp = getTime() + "/";
+    std::string output_folder = "data-output/"; output_folder += timestamp;
+    std::filesystem::create_directories(output_folder);
     
     double prize_fund = 0.0; //prize fund
     double maturity = std::stod(argv[1]); //years
@@ -173,54 +173,61 @@ int main(int argc, char* argv[]) {
 
 
     /*+MAIN--------------------------------------------+*/
-    for (int period = 1; period <= convertible * maturity; period++) {
-        //seriesBalances << period << ", ";
-        prize_fund = X * nominal_rate;
+    for (int batch = 1; batch <= batch_size; batch++) {
+        std::string filename = output_folder + "balances" + std::to_string(batch) + ".csv";
+        std::string graphname = output_folder + "graph" + std::to_string(batch) + ".jpg";
 
-        std::uniform_real_distribution<double> U(0, X);
-        for (int i = 0; i < prizes[0].size(); i++) {
-            for (int k = 1; k <= static_cast<int>(prizes[0][i]); k++) {
-                /*Y ~ U(0, current volume)
-                random number Y in [0, current volume) is chosen uniformly
-                suppose [0, X) is subdivided into intervals [0, a_1), [a_1, a_2), etc,
-                where a_{i+1}-a_i = account[i]. Then identify which interval contains Y.*/
-                double Y = U(rng), sum = 0.0;
-                int j = 0;
-                while (sum < Y) {
-                    sum += accounts[j];
-                    j++;
+        for (int period = 1; period <= convertible * maturity; period++) {
+            //seriesBalances << period << ", ";
+            prize_fund = X * nominal_rate;
+
+            std::uniform_real_distribution<double> U(0, X);
+            for (int i = 0; i < prizes[0].size(); i++) {
+                for (int k = 1; k <= static_cast<int>(prizes[0][i]); k++) {
+                    /*Y ~ U(0, current volume)
+                    random number Y in [0, current volume) is chosen uniformly
+                    suppose [0, X) is subdivided into intervals [0, a_1), [a_1, a_2), etc,
+                    where a_{i+1}-a_i = account[i]. Then identify which interval contains Y.*/
+                    double Y = U(rng), sum = 0.0;
+                    int j = 0;
+                    while (sum < Y) {
+                        sum += accounts[j];
+                        j++;
+                    }
+                    accounts[j - 1] += prize_fund * prizes[1][i];
                 }
-                accounts[j - 1] += prize_fund * prizes[1][i];
             }
+
+            X += prize_fund; //checkPrizes guarantees the prize fund is emptied
+            accounts_timeseries.push_back(accounts); //add current to series
         }
 
-        X += prize_fund; //checkPrizes guarantees the prize fund is emptied
-        accounts_timeseries.push_back(accounts); //add current to series
+        /*+STATS-------------------------------------------+*/
+        for (int i = 0; i < accounts.size(); i++) {
+            increases[i] = (accounts[i] / accounts_timeseries[0][i] - 1.00) * 100.00;
+        }
+
+        double book_increase = (X / initial_vol - 1.00) * 100.00;
+        double mean_annual_increase = (std::pow(1 + mean(increases), 1 / maturity) - 1.00) * maturity;
+
+        std::cout << u8"final book volume: £" << X << std::endl;
+        std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << simple_accrual << std::endl;
+        
+        std::cout << std::endl << "final ";
+        printAccounts(accounts, 10);
+
+        std::cout << "median (annual) increase: " << median(increases) << "\% (" << nominalFromEffective(median(increases), maturity) * maturity << "\%)" << std::endl;
+        std::cout << "average (annual) increase: " << mean(increases) << "\% (" << nominalFromEffective(mean(increases), maturity) * maturity << "\%)" << std::endl;
+        std::cout << "  book: " << book_increase << "\%" << std::endl;
+        std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
+        std::cout << "maximum amount: " << *std::max_element(accounts.begin(), accounts.end()) << std::endl;
+        std::cout << "minimum amount: " << *std::min_element(accounts.begin(), accounts.end()) << std::endl;
+
+        if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
+        if (generateGraph(graphname, accounts_timeseries, mean(increases), maturity)) { std::cout << "\nfailed to plot graph" <<std::endl; }
+
+        //reset();
     }
-
-    /*+STATS-------------------------------------------+*/
-    for (int i = 0; i < accounts.size(); i++) {
-        increases[i] = (accounts[i] / accounts_timeseries[0][i] - 1.00) * 100.00;
-    }
-
-    double book_increase = (X / initial_vol - 1.00) * 100.00;
-    double mean_annual_increase = (std::pow(1 + mean(increases), 1 / maturity) - 1.00) * maturity;
-
-    std::cout << u8"final book volume: £" << X << std::endl;
-    std::cout << ((toPennies(simple_accrual) == toPennies(X)) ? "  matches" : "  doesn't match") << " simple interest: £" << simple_accrual << std::endl;
-    
-    std::cout << std::endl << "final ";
-    printAccounts(accounts, 10);
-
-    std::cout << "median (annual) increase: " << median(increases) << "\% (" << nominalFromEffective(median(increases), maturity) * maturity << "\%)" << std::endl;
-    std::cout << "average (annual) increase: " << mean(increases) << "\% (" << nominalFromEffective(mean(increases), maturity) * maturity << "\%)" << std::endl;
-    std::cout << "  book: " << book_increase << "\%" << std::endl;
-    std::cout << "standard deviation: " << standardDeviation(increases) << "\%" << std::endl;
-    std::cout << "maximum amount: " << *std::max_element(accounts.begin(), accounts.end()) << std::endl;
-    std::cout << "minimum amount: " << *std::min_element(accounts.begin(), accounts.end()) << std::endl;
-
-    if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
-    if (generateGraph(graphname, accounts_timeseries, mean(increases), maturity)) { std::cout << "\nfailed to plot graph" <<std::endl; }
 
     return 0;
 }
