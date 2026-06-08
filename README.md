@@ -5,6 +5,7 @@ Inputs:
 - `(double) duration` in years,
 - `(double) effective annual interest rate` percentage as decimal,
 - `(int) compounding frequency` times per year,
+- `(int) batches` number of simulation runs,
 - `(bool) random` randomise initial account layout (otherwise read from config),
   - `(double) maximum deposit per account`,
   - `(int) maximum number of accounts`.
