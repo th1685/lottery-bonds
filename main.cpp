@@ -56,7 +56,19 @@ std::string getTime() {
 }
 
 
-void randomiseAccounts (std::vector<double>& accounts, int max_deposit, std::mt19937& rng) {
+int resetAccounts(std::vector<double>& accounts, std::vector<std::vector<double>>& accounts_timeseries, std::vector<double>& increases) {
+    accounts.clear(); accounts_timeseries.clear(); increases.clear();
+    accounts = load_1d("config/accounts.txt");
+    accounts_timeseries.push_back(accounts);
+    increases.resize(accounts.size());
+
+    std::cout << "accounts cleared" << std::endl;
+
+    return 0;
+}
+
+
+void randomiseAccounts(std::vector<double>& accounts, int max_deposit, std::mt19937& rng) {
     std::uniform_int_distribution<int> A(1, max_deposit);
 
     for (double& account : accounts) {
@@ -81,8 +93,8 @@ int checkInputs(int argc, char* argv[]) {
                   << std::endl << "  -maturity -convertible -effective rate -batch size -random -max deposit -max accounts" << std::endl;
         return 1;
     }
-    else if (parseBool(argv[5]) && (argc <= 6 || (std::stod(argv[6]) < 1 || std::stod(argv[7]) < 1))) {
-        std::cout << "enter positive limits for randomized deposits." << std::endl;
+    else if (parseBool(argv[5]) && (argc <= 6 || (std::stod(argv[6]) < 1 || std::stod(argv[7]) < 1) || std::stoi(argv[4]) > 1)) {
+        std::cout << "enter positive limits & max batchsize 1 for randomized deposits." << std::endl;
 
         return 1;
     }
@@ -130,12 +142,13 @@ int main(int argc, char* argv[]) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::vector<double> accounts;
+    std::vector<std::vector<double>> accounts_timeseries; //empty series
 
     if (random_accounts) {
         std::cout << "randomized deposits" << std::endl;
 
-        int max_deposit = std::stoi(argv[5]);
-        int max_account_quantity = std::stoi(argv[6]);
+        int max_deposit = std::stoi(argv[6]);
+        int max_account_quantity = std::stoi(argv[7]);
         std::uniform_int_distribution<int> A(1, max_account_quantity);
         accounts.resize(A(rng)); //empty random size
         randomiseAccounts(accounts, max_deposit, rng); //random start balances
@@ -146,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::vector<double>> prizes = load_2d("config/p-structure.txt");
     std::vector<double> increases(accounts.size(), 0.0);
-    std::vector<std::vector<double>> accounts_timeseries; //empty series
+
     accounts_timeseries.push_back(accounts); //push initial
 
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
@@ -226,7 +239,8 @@ int main(int argc, char* argv[]) {
         if (balancesToFile(filename, accounts_timeseries)) { std::cout << "\nfailed to write balances data to file" << std::endl; }
         if (generateGraph(graphname, accounts_timeseries, mean(increases), maturity)) { std::cout << "\nfailed to plot graph" <<std::endl; }
 
-        //reset();
+        resetAccounts(accounts, accounts_timeseries, increases);
+        X = accumulate(accounts.begin(), accounts.end(), 0.0); initial_vol = X; simple_accrual = X * pow((1.0 + effective_rate), maturity); prize_fund = 0.0;
     }
 
     return 0;
