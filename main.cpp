@@ -64,21 +64,38 @@ void randomiseAccounts (std::vector<double>& accounts, int max_deposit, std::mt1
 }
 
 
-void takeInputs(double& maturity, int& convertible, double& effective_rate, int& max_deposit, int& max_account_quantity) {
-    std::cout << "maturity (years) : ";
-    std::cin >> maturity;
+bool parseBool(const std::string& s) {
+    if (s == "true" || s == "1")
+        return true;
+    if (s == "false" || s == "0")
+        return false;
 
-    std::cout << "effective annual rate (%): ";
-    std::cin >> effective_rate; effective_rate /= 100.00;
+    throw std::invalid_argument("Invalid boolean value");
+}
 
-    std::cout << "compounding frequency (times per year): ";
-    std::cin >> convertible;
 
-    std::cout << "max deposit: ";
-    std::cin >> max_deposit;
+int checkInputs(int argc, char* argv[]) {
+    if (argc < 5 || argc > 7) {
+        std::cout << "wrong number of arguments: "
+                  << std::endl << "  -maturity -convertible -effective rate -random -max deposit -max accounts" << std::endl;
+        return 1;
+    }
+    else if (parseBool(argv[4]) && (argc <= 5 || (std::stod(argv[5]) < 1 || std::stod(argv[6]) < 1))) {
+        std::cout << "enter positive limits for randomized deposits." << std::endl;
 
-    std::cout << "max accounts: ";
-    std::cin >> max_account_quantity;
+        return 1;
+    }
+    else if (
+        std::stod(argv[1]) < 0.0 ||
+        std::stod(argv[2]) < 0.0 ||
+        std::stod(argv[3]) < 0.0
+        ) {
+        std::cout << "enter positive quantities" << std::endl;
+
+        return 1;
+    }
+
+    return 0;
 }
 
 
@@ -87,22 +104,12 @@ int main(int argc, char* argv[]) {
         SetConsoleOutputCP(CP_UTF8);
     #endif
 
-    /*+CDML--------------------------------------------+*/
-    if (argc != 6) {std::cout << "wrong number of arguments: "
-                              << std::endl << "  -maturity -convertible -effective rate -max deposit -max accounts" << std::endl;
-                    return 1;}
-    else if (
-        std::stod(argv[1]) < 0.0 ||
-        std::stod(argv[2]) < 0.0 ||
-        std::stod(argv[3]) < 0.0 ||
-        std::stod(argv[4]) < 0.0 ||
-        std::stod(argv[5]) < 0.0
-        ) {
-        std::cout << "enter positive quantities" << std::endl;
+    /*+CMDL--------------------------------------------+*/
+    if (checkInputs(argc, argv)) {
+        std::cout << "bad arguments" << std::endl;
 
         return 1;
     }
-
 
     /*+INIT--------------------------------------------+*/
     std::cout << std::fixed << std::setprecision(2);
@@ -116,19 +123,28 @@ int main(int argc, char* argv[]) {
     int convertible = std::stoi(argv[2]);
     double effective_rate = std::stod(argv[3]); //annual interest rate
     double nominal_rate = nominalFromEffective(effective_rate, convertible);
-    int max_deposit = std::stoi(argv[4]);
-    int max_account_quantity = std::stoi(argv[5]);
-
+    bool random_accounts = parseBool(argv[4]);
+    
     std::random_device dev;
     std::mt19937 rng(dev());
-    /*std::uniform_int_distribution<int> A(1, max_account_quantity);*/
-    /*std::vector<double> accounts(A(rng), 0.0);*/ //empty random size
+    std::vector<double> accounts;
 
-    std::vector<double> accounts = load_1d("config/accounts.txt");
+    if (random_accounts) {
+        std::cout << "randomized deposits" << std::endl;
+
+        int max_deposit = std::stoi(argv[5]);
+        int max_account_quantity = std::stoi(argv[6]);
+        std::uniform_int_distribution<int> A(1, max_account_quantity);
+        accounts.resize(A(rng)); //empty random size
+        randomiseAccounts(accounts, max_deposit, rng); //random start balances
+    } else {
+        std::cout << "reading accounts.txt" << std::endl;
+        accounts = load_1d("config/accounts.txt");
+    }
+
     std::vector<std::vector<double>> prizes = load_2d("config/p-structure.txt");
     std::vector<double> increases(accounts.size(), 0.0);
     std::vector<std::vector<double>> accounts_timeseries; //empty series
-    /*randomiseAccounts(accounts, max_deposit, rng);*/ //random start balances
     accounts_timeseries.push_back(accounts); //push initial
 
     double X = accumulate(accounts.begin(), accounts.end(), 0.0);
