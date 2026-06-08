@@ -1,4 +1,7 @@
 # lottery-bonds
+
+[Latest release — v0.1](https://github.com/th1685/lottery-bonds/releases)
+
 A simple stochastic simulation of a lottery bond.
 
 Inputs:
