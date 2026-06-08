@@ -75,12 +75,12 @@ bool parseBool(const std::string& s) {
 
 
 int checkInputs(int argc, char* argv[]) {
-    if (argc < 5 || argc > 7) {
+    if (argc < 6 || argc > 8) {
         std::cout << "wrong number of arguments: "
-                  << std::endl << "  -maturity -convertible -effective rate -random -max deposit -max accounts" << std::endl;
+                  << std::endl << "  -maturity -convertible -effective rate -batch size -random -max deposit -max accounts" << std::endl;
         return 1;
     }
-    else if (parseBool(argv[4]) && (argc <= 5 || (std::stod(argv[5]) < 1 || std::stod(argv[6]) < 1))) {
+    else if (parseBool(argv[5]) && (argc <= 6 || (std::stod(argv[6]) < 1 || std::stod(argv[7]) < 1))) {
         std::cout << "enter positive limits for randomized deposits." << std::endl;
 
         return 1;
@@ -88,7 +88,8 @@ int checkInputs(int argc, char* argv[]) {
     else if (
         std::stod(argv[1]) < 0.0 ||
         std::stod(argv[2]) < 0.0 ||
-        std::stod(argv[3]) < 0.0
+        std::stod(argv[3]) < 0.0 ||
+        std::stoi(argv[4]) < 1
         ) {
         std::cout << "enter positive quantities" << std::endl;
 
@@ -123,7 +124,8 @@ int main(int argc, char* argv[]) {
     int convertible = std::stoi(argv[2]);
     double effective_rate = std::stod(argv[3]); //annual interest rate
     double nominal_rate = nominalFromEffective(effective_rate, convertible);
-    bool random_accounts = parseBool(argv[4]);
+    int batch_size = std::stoi(argv[4]);
+    bool random_accounts = parseBool(argv[5]);
     
     std::random_device dev;
     std::mt19937 rng(dev());
