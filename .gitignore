@@ -68,7 +68,6 @@ vcpkg_installed/
 
 # data
 config/
-old-config/
 data-output/
 
 # debug information files
