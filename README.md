@@ -48,10 +48,11 @@ For the prizes,
 Build & run with
 ```bash
 $ cmake --build build
-$ ./build/lottery -maturity -convertible -effectiverate\
+$ ./build/lottery -maturity -convertible -effectiverate \
                   -batchsize -random ? (-maxdeposit -maxaccounts : null)
 ```
 Graph output depends on `gnuplot`.\
+
 Example output for `lottery 10 12 0.043 1 false` :
 ```bash
 prizes are initialised correctly.
