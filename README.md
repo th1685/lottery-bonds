@@ -78,4 +78,4 @@ minimum amount: 100.00
 balances data written to ./data-output/balances2026-05-31 T205117.csv
 chart saved to ./data-output/graph2026-05-31 T205117.jpg
 ```
-<img width="560" height="420" alt="graph2026-05-31 T205117" src="https://github.com/user-attachments/assets/ede1cdb5-8cb9-4be2-bb35-7cb5141a544b" />
+<img width="560" height="420" alt="bonds" src="https://github.com/user-attachments/assets/97efb120-497f-4bbb-bc7b-bf6b70eee9b5" />
