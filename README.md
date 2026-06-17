@@ -48,7 +48,7 @@ For the prizes,
 Build & run with
 ```bash
 $ cmake --build build
-$ ./build/lottery -maturity -effectiverate -convertible \
+$ ./build/lottery -maturity -convertible -effectiverate\
                   -batchsize -random ? (-maxdeposit -maxaccounts : null)
 ```
 Example output for `lottery 10 12 0.043 1 false` :
